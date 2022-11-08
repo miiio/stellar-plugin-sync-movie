@@ -84,12 +84,17 @@ class SynClient():
         
         try:
             if obj["action"] == 'play':
+                self.plugin.seekFlag = True
                 self.player.setProgress(int(obj["pos"]))
+                self.plugin.pauseFlag = True
                 self.player.pause(False)
             elif obj["action"] == 'pause':
+                self.plugin.seekFlag = True
                 self.player.setProgress(int(obj["pos"]))
+                self.plugin.pauseFlag = True
                 self.player.pause(True)
             elif obj["action"] == 'seek':
+                self.plugin.seekFlag = True
                 self.player.setProgress(int(obj["pos"]))
                 print("self.player.seek")
         except Exception as e:
@@ -107,6 +112,8 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         self.status = "等待连接"
         self.connect_btn = "connect"
         self.pageId = "sync-movie"
+        self.seekFlag = False
+        self.pauseFlag = False
         
     def get_methods(self):
         return (list(filter(lambda m: not m.startswith("_") and callable(getattr(self, m)),
@@ -117,6 +124,9 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
     # , 'show', 'start', 'stop', 'updateLayout']
     def onPause(self, *args):  
         # play=0 暂停; play=1 继续
+        if self.pauseFlag:
+            self.pauseFlag = False
+            return
         print("onPause:" + str(args))
         s, p, _ = args
         pos = self.player.getProgress()[0]
@@ -154,6 +164,9 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         })
         
     def onProgress(self, *args):
+        if self.seekFlag:
+            self.seekFlag = False
+            return
         p, _ = args
         
         if self.lastProgress == -1:
