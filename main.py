@@ -16,11 +16,13 @@ class SynClient():
         self.room = None
         self.ws = None
         self.connected = False
-        asyncio.set_event_loop(self.loop)     
+        asyncio.set_event_loop(self.loop)
         
     def sendCMD(self, data):
         if not self.connected: return
         data['room'] = self.room if self.room is not None else ""
+        if "pos" in data:
+            data["pos"] += 1
         self.ws.send(json.dumps(data))
         
     def connect(self, address=None, room=None):
@@ -99,12 +101,10 @@ class SynClient():
     def setProgress(self, p):
         self.plugin.seekFlag = True
         self.player.setProgress(p)
-        self.plugin.seekFlag = False
         
     def pause(self, b):
         self.plugin.pauseFlag = True
         self.player.pause(b)
-        self.plugin.pauseFlag = False
             
 class myplugin(StellarPlayer.IStellarPlayerPlugin):
     def __init__(self,player:StellarPlayer.IStellarPlayer):
@@ -129,6 +129,7 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
     def onPause(self, *args):  
         # play=0 暂停; play=1 继续
         if self.pauseFlag:
+            self.pauseFlag = False
             return
         print("onPause:" + str(args))
         s, p, _ = args
@@ -160,6 +161,9 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         print("handleRequest:" + str(args))
         
     def onSeek(self, pos):
+        if self.seekFlag:
+            self.seekFlag = False
+            return
         print("onSeek:" + str(pos))
         self.synClient.sendCMD({
             "action": "seek",
@@ -167,8 +171,6 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         })
         
     def onProgress(self, *args):
-        if self.seekFlag:
-            return
         p, _ = args
         
         if self.lastProgress == -1:
