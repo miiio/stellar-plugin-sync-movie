@@ -84,23 +84,27 @@ class SynClient():
         
         try:
             if obj["action"] == 'play':
-                self.plugin.seekFlag = True
-                self.player.setProgress(int(obj["pos"]))
-                self.plugin.pauseFlag = True
-                self.player.pause(False)
+                self.setProgress(int(obj["pos"]))
+                self.pause(False)
             elif obj["action"] == 'pause':
-                self.plugin.seekFlag = True
-                self.player.setProgress(int(obj["pos"]))
-                self.plugin.pauseFlag = True
-                self.player.pause(True)
+                self.setProgress(int(obj["pos"]))
+                self.pause(True)
             elif obj["action"] == 'seek':
-                self.plugin.seekFlag = True
-                self.player.setProgress(int(obj["pos"]))
-                print("self.player.seek")
+                self.setProgress(int(obj["pos"]))
         except Exception as e:
             print(e)
         finally:
             pass
+    
+    def setProgress(self, p):
+        self.plugin.seekFlag = True
+        self.player.setProgress(p)
+        self.plugin.seekFlag = False
+        
+    def pause(self, b):
+        self.plugin.pauseFlag = True
+        self.player.pause(b)
+        self.plugin.pauseFlag = False
             
 class myplugin(StellarPlayer.IStellarPlayerPlugin):
     def __init__(self,player:StellarPlayer.IStellarPlayer):
@@ -125,7 +129,6 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
     def onPause(self, *args):  
         # play=0 暂停; play=1 继续
         if self.pauseFlag:
-            self.pauseFlag = False
             return
         print("onPause:" + str(args))
         s, p, _ = args
@@ -165,7 +168,6 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         
     def onProgress(self, *args):
         if self.seekFlag:
-            self.seekFlag = False
             return
         p, _ = args
         
