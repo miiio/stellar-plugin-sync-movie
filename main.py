@@ -102,7 +102,7 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         StellarPlayer.IStellarPlayerPlugin.__init__(self, player)
         self.synClient = SynClient(self.player, self)
         self.lastProgress = -1
-        self.address = "ws://127.0.0.1:9000"
+        self.address = "wss://service-q4m0ngg6-1253081785.gz.apigw.tencentcs.com/release/"
         self.room = ""
         self.status = "等待连接"
         self.connect_btn = "connect"
