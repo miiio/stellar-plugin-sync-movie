@@ -12,7 +12,7 @@ class SynClient():
         self.loop = asyncio.new_event_loop()
         self.player = player
         self.plugin = plugin
-        self.address = address
+        self.address = None
         self.room = None
         self.ws = None
         self.connected = False
@@ -102,7 +102,7 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         StellarPlayer.IStellarPlayerPlugin.__init__(self, player)
         self.synClient = SynClient(self.player, self)
         self.lastProgress = -1
-        self.address = "wss://service-q4m0ngg6-1253081785.gz.apigw.tencentcs.com/release/"
+        self.address = "ws://127.0.0.1:9000"
         self.room = ""
         self.status = "等待连接"
         self.connect_btn = "connect"
@@ -118,7 +118,6 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
     def onPause(self, *args):  
         # play=0 暂停; play=1 继续
         print("onPause:" + str(args))
-        # onPause:(1, 2710741
         s, p, _ = args
         pos = self.player.getProgress()[0]
         if s == 0:
@@ -179,7 +178,7 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         print(self.address + "," + self.room)
         self.player.showControl(self.pageId, "connect", False)
         self.status = "正在连接..."
-        self.synClient.connect(self.address)
+        self.synClient.connect(self.address, self.room)
         
     def handleDisConnect(self, *args):
         if not self.synClient.connected: return
