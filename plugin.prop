@@ -1,5 +1,5 @@
-name=示例
-description =示例
+name=同步观影
+description = 同步观影
 version=0.1
-url=https://github.com/stellarplayer/stellar-plugin-test
+url=https://github.com/miiio/stellar-plugin-sync-movie
 type=其它

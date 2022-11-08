@@ -1,4 +1,6 @@
 import StellarPlayer
+import asyncio
+import websockets
 
 class myplugin(StellarPlayer.IStellarPlayerPlugin):
     def __init__(self,player:StellarPlayer.IStellarPlayer):
@@ -11,8 +13,8 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         return super().start()
         
     def show(self):
-        self.doModal('main',300, 300,'测试', [
-			{'type':'label','name':'hello', 'hAlign': 'center'}
+        self.doModal('main',300, 300,'测试22', [
+			{'type':'label','name':'hello222', 'hAlign': 'center'}
         ])
 
     
