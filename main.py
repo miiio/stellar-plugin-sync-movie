@@ -69,10 +69,11 @@ class SynClient():
         self.delay = (int)(dCnt / n / 2)
     
     def wsThread(self):
+        self.connected = True
+        
         self.delay = 0
         self.testDelay(2)
         
-        self.connected = True
         self.plugin.onConnectSuccess()
         while self.connected:
             recv = None
