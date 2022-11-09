@@ -40,14 +40,13 @@ class SynClient():
         t.start()
         
     def disconnect(self):
-        if self.connected: return
+        if not self.connected: return
         self.ws.close()
         self.connected = False
         
     def testDelay(self, n):
         if not self.connected: return
         import time
-        time.time()
         dCnt = 0
         for i in range(n):
             timestamp = (int)(time.time()*1000)
@@ -62,7 +61,9 @@ class SynClient():
                     continue
                 else:
                     break
-            d = ((int)(time.time()*1000)) - timestamp
+            now = ((int)(time.time()*1000))
+            d = now - timestamp
+            print("test ping" + str(i) + ":" + d)
             dCnt += d
         
         self.delay = (int)(dCnt / n / 2)
