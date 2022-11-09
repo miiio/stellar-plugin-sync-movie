@@ -16,13 +16,14 @@ class SynClient():
         self.room = None
         self.ws = None
         self.connected = False
+        self.delay = 0
         asyncio.set_event_loop(self.loop)
         
     def sendCMD(self, data):
         if not self.connected: return
         data['room'] = self.room if self.room is not None else ""
         if "pos" in data:
-            data["pos"] += 1
+            data["pos"] += self.delay
         self.ws.send(json.dumps(data))
         
     def connect(self, address=None, room=None):
@@ -35,16 +36,43 @@ class SynClient():
             self.plugin.onConnectFail(str(err))
         finally:
             pass
-        self.connected = True
-        self.plugin.onConnectSuccess()
         t = threading.Thread(target=self.wsThread, daemon=True)
         t.start()
         
     def disconnect(self):
+        if self.connected: return
         self.ws.close()
         self.connected = False
         
+    def testDelay(self, n):
+        if not self.connected: return
+        import time
+        time.time()
+        dCnt = 0
+        for i in range(n):
+            timestamp = (int)(time.time()*1000)
+            pong = "pong" + str(timestamp)
+            self.ws.send("ping" + str(timestamp))
+            recv = ""
+            tryCnt = 0
+            while tryCnt < 5:
+                tryCnt += 1
+                recv = self.ws.recv()
+                if recv != pong:
+                    continue
+                else:
+                    break
+            d = ((int)(time.time()*1000)) - timestamp
+            dCnt += d
+        
+        self.delay = (int)(dCnt / n / 2)
+    
     def wsThread(self):
+        self.delay = 0
+        self.testDelay(2)
+        
+        self.connected = True
+        self.plugin.onConnectSuccess()
         while self.connected:
             recv = None
             try:
@@ -99,6 +127,7 @@ class SynClient():
             pass
     
     def setProgress(self, p):
+        p += self.delay
         self.plugin.seekFlag = True
         self.player.setProgress(p)
         
@@ -133,7 +162,7 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
             return
         print("onPause:" + str(args))
         s, p, _ = args
-        pos = self.player.getProgress()[0]
+        pos = self.player.getProgress()[0] * 1000
         if s == 0:
             self.synClient.sendCMD({
                 "action": "pause",
@@ -178,12 +207,13 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
             return
         
         if abs(p - self.lastProgress) > 1100:
-            self.onSeek(p//1000)
+            self.onSeek(p)
         self.lastProgress = p
         # print("onProgress:" + str(args))
         
     
     def stop(self):
+        self.synClient.disconnect()
         return super().stop()
 
     def start(self):     
@@ -219,7 +249,7 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         self.player.showControl(self.pageId, "disconnect", False)
         
     def onConnectSuccess(self):
-        self.status = "已连接"
+        self.status = "已连接, ping:" + str(self.synClient.delay) + "ms"
         self.player.showControl(self.pageId, "connect", False)
         self.player.setControlSize(self.pageId, "disconnect", width=100)
         self.player.showControl(self.pageId, "disconnect", True)
