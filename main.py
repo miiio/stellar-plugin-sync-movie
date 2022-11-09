@@ -133,7 +133,7 @@ class SynClient():
         if delay:
             p += self.delay
         self.plugin.seekFlag = True
-        self.player.setProgress(p)
+        self.player.setProgress(p//1000)
         
     def pause(self, b, delay=False):
         self.plugin.pauseFlag = True
