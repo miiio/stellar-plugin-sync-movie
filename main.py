@@ -19,10 +19,10 @@ class SynClient():
         self.delay = 0
         asyncio.set_event_loop(self.loop)
         
-    def sendCMD(self, data):
+    def sendCMD(self, data, delay=False):
         if not self.connected: return
         data['room'] = self.room if self.room is not None else ""
-        if "pos" in data:
+        if "pos" in data and delay:
             data["pos"] += self.delay
         self.ws.send(json.dumps(data))
         
@@ -51,6 +51,7 @@ class SynClient():
         for i in range(n):
             timestamp = (int)(time.time()*1000)
             pong = "pong" + str(timestamp)
+            # print("test ping " + pong)
             self.ws.send("ping" + str(timestamp))
             recv = ""
             tryCnt = 0
@@ -63,7 +64,7 @@ class SynClient():
                     break
             now = ((int)(time.time()*1000))
             d = now - timestamp
-            print("test ping" + str(i) + ":" + d)
+            print("test ping" + str(i) + ":" + str(d))
             dCnt += d
         
         self.delay = (int)(dCnt / n / 2)
@@ -116,24 +117,25 @@ class SynClient():
         
         try:
             if obj["action"] == 'play':
-                self.setProgress(int(obj["pos"]))
+                self.setProgress(int(obj["pos"]), True)
                 self.pause(False)
             elif obj["action"] == 'pause':
                 self.setProgress(int(obj["pos"]))
                 self.pause(True)
             elif obj["action"] == 'seek':
-                self.setProgress(int(obj["pos"]))
+                self.setProgress(int(obj["pos"], True))
         except Exception as e:
             print(e)
         finally:
             pass
     
-    def setProgress(self, p):
-        p += self.delay
+    def setProgress(self, p, delay=False):
+        if delay:
+            p += self.delay
         self.plugin.seekFlag = True
         self.player.setProgress(p)
         
-    def pause(self, b):
+    def pause(self, b, delay=False):
         self.plugin.pauseFlag = True
         self.player.pause(b)
             
@@ -142,6 +144,7 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         StellarPlayer.IStellarPlayerPlugin.__init__(self, player)
         self.synClient = SynClient(self.player, self)
         self.lastProgress = -1
+        # self.address = "ws://127.0.0.1:9000"
         self.address = "wss://service-q4m0ngg6-1253081785.gz.apigw.tencentcs.com/release/"
         self.room = ""
         self.status = "等待连接"
@@ -169,12 +172,12 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
             self.synClient.sendCMD({
                 "action": "pause",
                 "pos": pos
-            })
+            }, False)
         elif s == 1:
             self.synClient.sendCMD({
                 "action": "play",
                 "pos": pos
-            })
+            }, True)
     
     def onFastBackward(self, *args):
         print("onFastBackward:" + str(args))
