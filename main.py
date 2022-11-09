@@ -23,7 +23,7 @@ class SynClient():
         if not self.connected: return
         data['room'] = self.room if self.room is not None else ""
         if "pos" in data and delay:
-            data["pos"] += self.delay
+            data["pos"] += self.delay + 1000
         self.ws.send(json.dumps(data))
         
     def connect(self, address=None, room=None):
