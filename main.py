@@ -123,7 +123,7 @@ class SynClient():
                 self.setProgress(int(obj["pos"]))
                 self.pause(True)
             elif obj["action"] == 'seek':
-                self.setProgress(int(obj["pos"], True))
+                self.setProgress(int(obj["pos"]), True)
         except Exception as e:
             print(e)
         finally:
