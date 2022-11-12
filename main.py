@@ -114,17 +114,12 @@ class SynClient():
             
         if "action" not in obj: return
         print("action:" + obj["action"])
-        playInfo = self.player.getPlayInfo()
-        if playInfo['status'] == -1 or playInfo['status'] == 2:
-            return
         try:
             if obj["action"] == 'play':
-                if playInfo['status'] == 1:
-                    self.pause(False)
+                self.pause(False)
                 self.setProgress(int(obj["pos"]), True)
             elif obj["action"] == 'pause':
-                if playInfo['status'] == 0:
-                    self.pause(True)
+                self.pause(True)
                 self.setProgress(int(obj["pos"]))
             elif obj["action"] == 'seek':
                 self.setProgress(int(obj["pos"]), True)
@@ -138,7 +133,7 @@ class SynClient():
         if delay:
             p += self.delay
         self.plugin.seekFlag = True
-        self.player.setProgress(p//1000)
+        self.player.setProgress((p+500)//1000)
         
     def pause(self, b, delay=False):
         self.plugin.pauseFlag = True
