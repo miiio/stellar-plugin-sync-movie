@@ -73,7 +73,7 @@ class SynClient():
         self.connected = True
         
         self.delay = 0
-        self.testDelay(2)
+        self.testDelay(5)
         
         self.plugin.onConnectSuccess()
         while self.connected:
@@ -114,19 +114,24 @@ class SynClient():
             
         if "action" not in obj: return
         print("action:" + obj["action"])
-        
+        playInfo = self.player.getPlayInfo()
+        if playInfo['status'] == -1 or playInfo['status'] == 2:
+            return
         try:
             if obj["action"] == 'play':
+                if playInfo['status'] == 1:
+                    self.pause(False)
                 self.setProgress(int(obj["pos"]), True)
-                self.pause(False)
             elif obj["action"] == 'pause':
+                if playInfo['status'] == 0:
+                    self.pause(True)
                 self.setProgress(int(obj["pos"]))
-                self.pause(True)
             elif obj["action"] == 'seek':
                 self.setProgress(int(obj["pos"]), True)
         except Exception as e:
             print(e)
         finally:
+            self.player.addDanmu(self, result)
             pass
     
     def setProgress(self, p, delay=False):
