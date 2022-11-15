@@ -95,7 +95,6 @@ class SynClient():
             if recv == 'ping':
                 self.ws.send("pong")
                 continue
-            print("recv:" + recv)
             self.resultHandler(recv)
             
         self.plugin.onDisConnectSuccess()
@@ -135,8 +134,13 @@ class SynClient():
         self.player.setProgress((p+500)//1000)
         
     def pause(self, b, delay=False):
+        _status = self.player.getPlayInfo()['status']
+        if _status != 0 and _status != 1:
+            return
+        
         self.plugin.pauseFlag = True
-        self.player.pause(b)
+        if _status == 0 and b or _status == 1 and not b:
+            self.player.pause(b)
             
 class myplugin(StellarPlayer.IStellarPlayerPlugin):
     def __init__(self,player:StellarPlayer.IStellarPlayer):
