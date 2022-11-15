@@ -126,7 +126,6 @@ class SynClient():
         except Exception as e:
             print(e)
         finally:
-            self.player.addDanmu(self, result)
             pass
     
     def setProgress(self, p, delay=False):
