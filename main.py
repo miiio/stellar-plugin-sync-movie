@@ -159,7 +159,7 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         self.reTry = True
         self.reTryCount = 0
         self.MaxreTryCount = 5
-        self.reTryDelay = 10000
+        self.reTryDelay = 3000
         
         
     def get_methods(self):
