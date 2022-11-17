@@ -3,6 +3,7 @@ import asyncio
 from .websocket import create_connection
 import json
 import threading
+import time
 
 import os
 
@@ -155,6 +156,11 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         self.pageId = "sync-movie"
         self.seekFlag = False
         self.pauseFlag = False
+        self.reTry = True
+        self.reTryCount = 0
+        self.MaxreTryCount = 5
+        self.reTryDelay = 10000
+        
         
     def get_methods(self):
         return (list(filter(lambda m: not m.startswith("_") and callable(getattr(self, m)),
@@ -233,6 +239,7 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         print(self.address + "," + self.room)
         self.player.showControl(self.pageId, "connect", False)
         self.status = "正在连接..."
+        self.reTryCount = 0
         self.synClient.connect(self.address, self.room)
         
     def handleDisConnect(self, *args):
@@ -267,10 +274,30 @@ class myplugin(StellarPlayer.IStellarPlayerPlugin):
         self.player.showControl(self.pageId, "connect", True)
         self.player.showControl(self.pageId, "disconnect", False)
         
+        if self.reTry:
+            t = threading.Thread(target=self.wsThread, daemon=True)
+            t.start()
+        
+    def reTryThread(self):
+        if not self.reTry or self.synClient.connected: return
+        self.reTryCount += 1
+        if self.reTryCount > self.MaxreTryCount:
+            self.status = "重连次数已达最大值,请检查服务器状态."
+            return
+        time.sleep(self.reTryDelay / 1000)
+        
+        
+        print("retry: " + self.address + "," + self.room)
+        self.player.showControl(self.pageId, "connect", False)
+        self.status = "正在尝试第" + str(self.reTryCount) + "重连..."
+        self.synClient.connect(self.address, self.room)
+        
+        
     def onDisConnectSuccess(self):
         self.status = "等待连接"
         self.player.showControl(self.pageId, "connect", True)
         self.player.showControl(self.pageId, "disconnect", False)
+        self.reTryCount = 0
     
 def newPlugin(player:StellarPlayer.IStellarPlayer,*arg):
     plugin = myplugin(player)
